@@ -9,8 +9,15 @@
 * License: CC BY
 */
 
+// Não permite acesso direto ao plugin, neste caso a constante abaixo não vai estar definida
+if ( !defined( 'WPINC' ) )
+{
+    die;
+}
+
 add_action( 'admin_init', 'configs_plugin_menu' );
 
+// Utilizando a tabela _options
 function configs_plugin_menu ()
 {
     register_setting( 'configs-plugin-menu', 'url-api-auth' );

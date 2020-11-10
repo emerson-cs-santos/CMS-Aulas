@@ -9,6 +9,12 @@
 * License: CC BY
 */
 
+// Não permite acesso direto ao plugin, neste caso a constante abaixo não vai estar definida
+if ( !defined( 'WPINC' ) )
+{
+    die;
+}
+
 // Exemplo usando filter hook - Inicio
 add_filter( 'login_errors', 'nova_mensagem_de_erro');
 
