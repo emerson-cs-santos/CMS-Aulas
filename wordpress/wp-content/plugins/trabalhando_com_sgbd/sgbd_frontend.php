@@ -1,7 +1,21 @@
 <div class="wrap">
     <h1>Configurações SGBD</h1>
 
-    <?php  
+<?php 
+
+    if ( $gravou == 'sim' )
+    {
+        echo " <div id='message' class='wrap'>
+                    <div id='message' class='updated notice is-dismissible'>
+                        <p>Informações salvas com sucesso!</p>
+                    </div>
+                </div> ";
+    }    
+        
+    if ( isset($msg) )
+    {
+        echo $msg;
+    }
     
         if ( count( $contatos ) > 0)
         {
@@ -10,6 +24,8 @@
                 <tr> 
                     <td>Nome</td> 
                     <td>Whatsapp</td> 
+                    <td colspan='2'>Ações</td> 
+                    
                 </tr>";
 
             foreach ($contatos as $contato) 
@@ -17,14 +33,15 @@
                 echo "  <tr> 
                             <td>{$contato->nome}</td> 
                             <td>{$contato->whatsapp}</td>
+                            <td> <a href='?page={$_GET['page']}&apagar={$contato->id}'> Apagar</a> </td>
+                            <td> <a href='?page={$_GET['page']}&editar={$contato->id}'> Editar</a> </td>
                         </tr>
                     ";
             }
 
             echo "</table>";
         }
-    
-    ?>
+?>
 
 <!-- Sem action será enviado para o mesmo endereço que está aberto -->
     <form method="post" style="margin-top: 25px;">

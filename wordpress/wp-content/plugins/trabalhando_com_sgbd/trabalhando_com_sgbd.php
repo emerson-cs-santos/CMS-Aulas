@@ -31,22 +31,84 @@ function gera_item_no_menu()
 function abre_config_plugin_menu()
 {
     global $wpdb;
+    $tableName = $wpdb->prefix . "AGENDA";
 
-    if ( isset( $_POST['nome'] ) and isset( $_POST['whatsapp'] ) )
+    $msg = "";
+    $gravou = "";
+
+    // Editar
+    if ( isset( $_GET['editar'] ) and !isset( $_POST['ID'] ) )
     {
-        $nome = $_POST['nome'];
-        $whatsapp = $_POST['whatsapp'];
+        $ID =  preg_replace('/\D/', '',  $_GET['editar'] );
+        $gravou = '';
 
-        $wpdb->query( " INSERT INTO {$wpdb->prefix}AGENDA
-                            (nome,  whatsapp)
-                        VALUES
-                            ( '$nome', $whatsapp ) " );
+        $cadastros = $wpdb->get_results(" SELECT * FROM $tableName where id = " . $ID);
+
+        require 'sgbd_digitar_frontend.php';
     }
 
-    $contatos = $wpdb->get_results(" SELECT * FROM {$wpdb->prefix}AGENDA ");
+    // Deletar
+    if ( isset( $_GET['apagar'] ) and !isset( $_POST['nome']) )
+    {
+        $ID =  preg_replace('/\D/', '',  $_GET['apagar'] );
 
-    require 'sgbd_frontend.php';
-}   
+        $wpdb->delete( $tableName, array( 'id' => $ID ) );
+
+         $wpdb->delete( $tableName, array( 'id' => $ID ) );
+
+         $msg = 'Apagado com sucesso!';
+    }
+
+    if ( !isset( $_GET['editar'] ) )
+    {
+        //Update
+        if ( isset( $_POST['ID_alterar'] ) and isset( $_POST['nome'] ) and isset( $_POST['whatsapp'] ) )
+        {
+            $ID         = $_POST['ID_alterar'];
+            $nome       = $_POST['nome'];
+            $whatsapp   = $_POST['whatsapp'];
+
+            $wpdb->update($tableName, array(
+                "nome"     => $nome
+                ,"whatsapp" => $whatsapp
+            ), array(
+                'id' => $ID
+            ));  
+            
+            $gravou = "sim"; 
+        } 
+        else
+        {
+            // Inserir
+            if ( isset( $_POST['nome'] ) and isset( $_POST['whatsapp'] ) and !isset( $_GET['ID_alterar'] ) )
+            {
+                $nome = $_POST['nome'];
+                $whatsapp = $_POST['whatsapp'];
+
+                $wpdb->query( " INSERT INTO $tableName
+                                    (nome,  whatsapp)
+                                VALUES
+                                    ( '$nome', $whatsapp ) " );
+                $gravou = "sim";
+            }            
+        }        
+
+        $contatos = $wpdb->get_results(" SELECT * FROM {$wpdb->prefix}AGENDA ");
+
+        require 'sgbd_frontend.php';
+    }
+
+}  
+
+function atualizar()
+{
+    global $wpdb;
+    $tableName = $wpdb->prefix . "AGENDA";
+    $gravou = '';
+    
+
+
+}
 
 
 
@@ -66,6 +128,53 @@ function criar_tabela()
                         ,nome VARCHAR(255) NOT NULL
                         ,whatsapp BIGINT UNSIGNED NOT NULL  
                     ) " );
+
+    $page_title = 'Lista de Contatos 2';
+    $page_name  = 'Contatos comerciais - Whatsapp ';
+    $conteudo   = '[tela_dinamica_contatos]';
+
+    $page    = get_page_by_title( $page_title );
+
+    if ( !$page )
+    {
+        // Se a página não existir
+        $post = [   'post_title'        => $page_title
+                    ,'post_content'     => $conteudo
+                    ,'post_status'      => 'publish'
+                    ,'post_type'        => 'page'
+                    ,'comment_status'   => 'closed'
+                    ,'ping_status'      => 'closed'
+                    ,'post_category'    => [1]
+                ];
+        
+        $page_id = wp_insert_post( $post );
+    }
+    else
+    {
+        // Página já existe, deve ter sido criado por outro modo ou pelo plugin que ao desativar, por algum motivo não apagou.
+       // $page_id = $page->ID; Se precisar usar o ID da página
+        $page->post_status = 'publish';
+        $page->post_content = $conteudo;
+        
+        
+    }
+}
+
+add_shortcode( 'tela_dinamica_contatos', 'tela_dinamica' );
+
+function tela_dinamica()
+{
+    global $wpdb;
+
+    $tableName = $wpdb->prefix . "AGENDA";
+
+    $contatos = $wpdb->get_results(" SELECT * FROM {$wpdb->prefix}AGENDA ");
+
+    ob_start();
+    
+    include 'sgbd_tela_externa.php';
+    
+    return ob_get_clean();
 }
 
 register_deactivation_hook( __FILE__, 'destruir_tabela' );
