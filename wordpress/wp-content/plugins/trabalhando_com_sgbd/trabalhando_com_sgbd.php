@@ -164,11 +164,25 @@ add_shortcode( 'tela_dinamica_contatos', 'tela_dinamica' );
 
 function tela_dinamica()
 {
+    $buscar = "";
+    $where = "";
+    if ( isset( $_GET['termo'] ) )
+    {
+        $buscar =  $_GET['termo'];
+    }
+
+    if ( !empty($buscar) )
+    {
+        $where = " where 
+                        nome like '%$buscar%' 
+                        OR whatsapp like '%$buscar%' ";
+    }
+    
     global $wpdb;
 
     $tableName = $wpdb->prefix . "AGENDA";
 
-    $contatos = $wpdb->get_results(" SELECT * FROM {$wpdb->prefix}AGENDA ");
+    $contatos = $wpdb->get_results(" SELECT * FROM {$wpdb->prefix}AGENDA $where");
 
     ob_start();
     
